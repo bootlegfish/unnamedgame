@@ -1,0 +1,450 @@
+var initprompt = prompt("enter your username");
+if (initprompt !== null) {
+    var x = 0;
+    var y = 0;
+    var health = 10;
+    var maxhealth = 10;
+    var defense = 0;
+    var baseattack = 2;
+    var equipmentdictionary = {
+        "Weapon": "Nothing",
+        "Armour": "Nothing",
+        "Rings": []
+    };
+    var consumablearray = [];
+    var weapondictionary = {
+        "Nothing": 2,
+        "Dagger": 4,
+        "Sword": 9,
+        "Enchanted Sword": 15,
+        "Dual Enchanted Swords": 30,
+        "Glock": 50,
+        "Glizzy": 75,
+        "Comically Large Spoon": 125,
+        "British Shank": 300
+    };
+    var armourdictionary = {
+        "Nothing": 0,
+        "Leather": 0.1,
+        "ChainMail": 0.15,
+        "Iron Plated": 0.3,
+        "Military Gear": 0.5,
+        "Bandana": 0.75,
+        "Yanke With No Brim":0.8
+    };
+    var ringdictionary = {
+        "Silver": {"healthadd":5},
+        "Gold": {"healthadd":15},
+        "Diamond": {"healthadd":40},
+        "Platinum": {"healthadd":100},
+        "Obamium": {"healthadd":250},
+        
+        "Steel": {"attackadd":1},
+        "Saphire":{"attackadd":10},
+        "Ruby":{"attackadd":25},
+        "Vbuckite":{"attackadd":50},
+        
+        "Emerald":{"healthmulti":0.1},
+        "Red Diamond":{"attackmulti":0.1},
+    
+        "Master":{"healthadd":300,"attackadd":80}
+    };
+    var loopvar = true;
+    var riddlesolved = false;
+    var enemypresent = false;
+    var enemyhealth = 0;
+    var enemymaxhealth = 0;
+    var enemyattack = 0;
+    var enemyname = "";
+    var enemydropchance = 0;
+    var enemydrops = [];
+    var countsinceenemy = 10;
+    alert("Hello, "+ initprompt);
+    
+    function checkcoords(tx,ty){
+        if (x === tx && y === ty) {
+            return true
+        }
+    }
+    
+    function updatestats(){
+        let healthdifference = maxhealth - health;
+        maxhealth = 10;
+        let healthmultip = 1;
+        let attackmultip = 1;
+        for(var key in equipmentdictionary) {
+            let value = equipmentdictionary[key];
+            if (key === "Weapon") {
+                for(var key2 in weapondictionary) {
+                    let value2 = weapondictionary[key2];
+                    if(value === key2) {
+                        baseattack = value2;
+                    }
+                }
+            }else if(key === "Armour") {
+                for(var key3 in armourdictionary) {
+                    let value3 = armourdictionary[key3];
+                    if(value === key3) {
+                        defense = value3;
+                    }
+                }
+            }else if(key === "Rings") {
+                for(const ring of equipmentdictionary["Rings"]) {
+                    for(var key4 in ringdictionary) {
+                        let ringstatdictionary = ringdictionary[key4];
+                        if(ring === key4) {
+                            for(var statname in ringstatdictionary) {
+                                let statvalue = ringstatdictionary[statname];
+                                if(statname === "healthadd") {
+                                    maxhealth = maxhealth + statvalue;
+                                }else if(statname === "attackadd"){
+                                    baseattack = baseattack + statvalue;
+                                }else if(statname === "healthmulti"){
+                                    healthmultip = healthmultip + statvalue;
+                                }else if(statname === "attackmulti") {
+                                    attackmultip = attackmultip + statvalue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            maxhealth = maxhealth * healthmultip;
+            baseattack = baseattack * attackmultip;
+            health = maxhealth;
+            health = health - healthdifference;
+        }
+    }
+    
+    var gsh1 = true
+    var gsh2 = true
+    function move(movevar,combatvar){
+        let words = movevar.split(' ');
+        if(movevar==="up"||movevar == "u"){
+            if(combatvar === true){
+                let movealert = alert("You cant move while in combat.");
+            }else{
+                y = y + 1;
+                return y
+            }
+        }else if(movevar === "down"||movevar === "d") {
+            if(combatvar == true){
+                let movealert = alert("You cant move while in combat.");
+            }else{
+                y = y - 1;
+                return y
+            }
+        }else if(movevar === "right"||movevar === "r") {
+            if(combatvar == true){
+                let movealert = alert("You cant move while in combat.");
+            }else{
+                x = x + 1;
+                return y
+            }
+        }else if(movevar === "left"||movevar === "l") {
+            if(combatvar == true){
+                let movealert = alert("You cant move while in combat.");
+            }else{
+                x = x - 1;
+                return y
+            }
+        }else if(movevar === "stats"||movevar === "s") {
+            let statalert = alert("Your health: "+health+"\nYour max health: "+maxhealth+"\nYour damage: "+baseattack+"\nYour defense: "+defense); 
+        }else if(movevar ==="cmds") {
+            let cmdalert = alert("Commands:\nright\nleft\nup\ndown\nstats\nattack\ninventory\ncmds\nSome commands have one letter alliases.");
+        }else if(movevar === "attack") {
+            if(enemypresent === true) {
+                enemyhealth = enemyhealth - baseattack;
+                let attackalert = alert("Pow! you did "+baseattack+" damage. the enemies health is now "+enemyhealth);
+            }else {
+                let attackalert = alert("There isnt anything to attack.");
+            }
+        }else if(words[0] === "use") {
+            if (consumablearray.includes(words[1])) {
+                if (words[1] === "NoviceHealthPotion") {
+                    health = health + 10;
+                    if (health > maxhealth) {
+                        health = maxhealth;
+                    }
+                }else if(words[1] === "PorkChop") {
+                    health = health + 25;
+                    if (health > maxhealth) {
+                        health = maxhealth;
+                    }
+                }
+                let index = consumablearray.indexOf(words[1]);
+                if (index > -1) {
+                    consumablearray.splice(index, 1);
+                }
+                let consumptionalert = alert("You consumed the "+words[1]);
+            }else {
+               let usealert = alert("You dont have that item, or it doesnt exist.");
+            }
+        }else if(movevar === "inventory"||movevar === "i") {
+            let textthing = "Your armour: "+equipmentdictionary["Armour"]+"\nYour weapon: "+equipmentdictionary["Weapon"]+"\nYour rings: ";
+            let conindex2 = 1;
+            for(const ring of equipmentdictionary["Rings"]){
+                if (conindex2 !== equipmentdictionary["Rings"].length) {
+                    textthing = textthing + ring+", ";
+                }else{
+                    textthing = textthing + ring;
+                }
+                conindex2 = conindex2 + 1;
+            }
+            if (equipmentdictionary["Rings"].length === 0) {
+                textthing = textthing+ "Nothing";
+            }
+            
+            textthing = textthing+"\nYour consumables: ";
+            let conindex = 1;
+            for(const consumable of consumablearray){
+                if (conindex !== consumablearray.length) {
+                    textthing = textthing + consumable+", ";
+                }else{
+                    textthing = textthing + consumable;
+                }
+                conindex = conindex + 1;
+            }
+            if (consumablearray.length === 0) {
+                textthing = textthing + "Nothing";
+            }
+            let textalert = alert(textthing);
+        }else if(movevar === "steal") {
+            if (enemypresent === false) {
+                if (checkcoords(-5,3) && gsh1 === true) {
+                    gsh1 = false;
+                    if(weapondictionary["Sword"] > weapondictionary[equipmentdictionary["Weapon"]]) {
+                        equipmentdictionary["Weapon"] = "Sword";
+                        updatestats();
+                        let lootalert = alert("You found a Sword!");
+                    }else {
+                        let lootalert = alert("You found a Sword, but it did less damage than your current weapon so you didn't take it.");
+                    }
+                }else if(checkcoords(5,-3) && gsh2 === true) {
+                    gsh2 = false;
+                    if(armourdictionary["Leather"] > armourdictionary[equipmentdictionary["Armour"]]) {
+                        equipmentdictionary["Armour"] = "Leather";
+                        updatestats();
+                        let lootalert = alert("You found Leather Armour!");
+                    }else {
+                        let lootalert = alert("You found Leather Armour, but gave less defense than your current armour so you didn't take it.");
+                    }
+                }else {
+                    let lootalert = alert("There is nothing to steal.");
+                }
+            }else {
+                let noalert = alert("You cant steal anything while in battle.");
+            }
+        }
+    }
+
+    function basiccalculation(eattack,def){
+        let pee = eattack*def;
+        let pee2 = eattack-pee;
+        return pee2
+    }
+    
+    function enemy(enemytype){
+        if (enemytype === "test dummy"){
+            enemypresent = true;
+            enemymaxhealth = 5;
+            enemyhealth = 5;
+            enemyattack = 1;
+            enemyname = "test dummy";
+            enemydropchance = 2;
+            enemydrops = [["Weapon","Dagger"]];
+            let enemyalert = alert("Uh oh! A random test dummy has appeared.");
+        }else if(enemytype === "goblin"){
+            enemypresent = true;
+            enemymaxhealth = 4;
+            enemyhealth = 4;
+            enemyattack = 1;
+            enemyname = "goblin";
+            enemydropchance = 2;
+            enemydrops = [["Weapon","Dagger"],["Consumable","NoviceHealthPotion"]];
+            let enemyalert = alert("Woah! A goblin has appeared.");
+        }else if(enemytype === "gnome"){
+            enemypresent = true;
+            enemymaxhealth = 1000;
+            enemyhealth = 1000;
+            enemyattack = 1;
+            enemyname = "gnome";
+            enemydropchance = 2;
+            enemydrops = [["Weapon","Dagger"]];
+            let enemyalert = alert("Its not a gnoblin, its a gnome! And you've been gnomed!");
+        }else if(enemytype === "piggle"){
+            enemypresent = true;
+            enemymaxhealth = 20;
+            enemyhealth = 20;
+            enemyattack = 2.5;
+            enemyname = "piggle";
+            enemydropchance = 3;
+            enemydrops = [["Consumable","PorkChop"],["Ring","Silver"]];
+            let enemyalert = alert('You hear what sounds like a deformed pig. Oh wait, its a piggle!');
+        }else if(enemytype === "big willy"){
+            enemypresent = true;
+            enemymaxhealth = 5000;
+            enemyhealth = 5000;
+            enemyattack = 200;
+            enemyname = "big willy";
+            enemydropchance = 10;
+            enemydrops = [["Weapon","British Shank"]];
+            let enemyalert = alert("bruh");
+        }else if(enemytype === "lil benus") {
+            enemypresent = true;
+            enemymaxhealth = 50;
+            enemyhealth = 50;
+            enemyattack = 5;
+            enemyname = "lil benus";
+            enemydropchance = 8;
+            enemydrops = [["Consumable","BenusMilk"]];
+            let enemyalert = alert("prepare to be benused");
+        }else if(enemytype === "elite goblin") {
+            enemypresent = true;
+            enemymaxhealth = 15;
+            enemyhealth = 15;
+            enemyattack = 2;
+            enemyname = "elite goblin";
+            enemydropchance = 2;
+            enemydrops = [["Ring","Steel"],["Consumable","NoviceHealthPotion"]];
+            let enemyalert = alert("Woah! An elite goblin has appeared.");
+        }else if(enemytype === "football jucie") {
+            enemypresent = true;
+            enemymaxhealth = 700;
+            enemyhealth = 700;
+            enemyattack = 700;
+            enemyname = "football jucie";
+            enemydropchance = 2;
+            enemydrops = [["Consumable","football"]];
+            let enemyalert = alert("football.");
+        }
+        countsinceenemy = 0;
+    }
+
+    var startprompt = prompt('You wake up in the middle of a large empty area. Strange. Say "up","down","right", or "left" to move. Say "cmds" for a full list of commands.');
+    move(startprompt);
+    while(loopvar===true){
+        let chez;
+        if (enemypresent === true){
+            if (enemyhealth > 0) {
+                health = health - basiccalculation(enemyattack,defense);
+                countsinceenemy = 0;
+                let attackedalert = alert("Ouch! The "+enemyname+" attacked you for "+basiccalculation(enemyattack,defense)+" damage. You are now at "+health+"health.");
+                if(health > 0){
+                    chez = prompt("You are in battle. Make your move.");
+                    move(chez,true);
+                }else{
+                    loopvar = false;
+                    gameoveralert = alert("Game Over.");
+                }
+            }else {
+                chez = "notnil"
+                enemypresent = false;
+                enemyhealth = 0;
+                enemymaxhealth = 0;
+                enemyattack = 0;
+                enemyname = "";
+                let chancevar = Math.floor(Math.random() * enemydropchance);
+                let mathvar = Math.floor(Math.random() * enemydrops.length);
+                let loot = enemydrops[mathvar];
+                let wintext = "Wow! You won!";
+                if(loot[0] === "Weapon") {
+                    if (chancevar === 0) {
+                        if (equipmentdictionary["Weapon"] !== loot[1]&&weapondictionary[loot[1]] > weapondictionary[equipmentdictionary["Weapon"]]) {
+                            wintext = wintext + "\nLoot gained: "+loot[1];
+                            equipmentdictionary["Weapon"] = loot[1];
+                        }
+                    }
+                }else if(loot[0] === "Armour") {
+                    if (chancevar === 0) {
+                        if (equipmentdictionary["Armour"] !== loot[1]&&armourdictionary[loot[1]] > armourdictionary[equipmentdictionary["Armour"]]) {
+                            wintext = wintext + "\nLoot gained: "+loot[1];
+                            equipmentdictionary["Armour"] = loot[1];
+                        }
+                    }
+                }else if(loot[0] === "Ring") {
+                    if (chancevar === 0) {
+                        if (equipmentdictionary["Rings"].includes(loot[1]) === false){
+                            wintext = wintext + "\nLoot gained: "+loot[1];
+                            equipmentdictionary["Rings"].push(loot[1]);
+                        }
+                    }
+                }else if(loot[0] === "Consumable") {
+                    wintext = wintext + "\nLoot gained: "+loot[1];
+                    consumablearray.push(loot[1]);
+                }
+                if (wintext === "Wow! You won!"){
+                    wintext = wintext + "\nLoot gained: Nothing"
+                }
+                enemydropchance = 0;
+                enemydrops = [];
+                updatestats();
+                let winalert = alert(wintext);
+            }
+        }else if (checkcoords(6,3)){
+            chez = prompt('There is nothing but a sign in this area saying "Fish was here". Your position is '+x+','+y+'.');
+            move(chez);
+        }else if(checkcoords(10,10)){
+               if (countsinceenemy > 5) {
+                chez = "notnull";
+                enemy("gnome");
+            }else {
+                chez = prompt("Welcome to the gnome room! Your position is "+x+","+y+". I have no idea how you survived.");
+                move(chez);
+            }  
+        }else if(checkcoords(-4,2)||checkcoords(4,-2)||checkcoords(4,2)||checkcoords(-4,-2)){
+            if (countsinceenemy > 5) {
+                chez = "notnull";
+                enemy("goblin");
+            }else {
+                chez = prompt("You are at a goblin camp. Your position is "+x+","+y+".");
+                move(chez);
+            }
+        }else if(checkcoords(5,5)||checkcoords(-5,-5)){
+            if (countsinceenemy > 6) {
+                chez = "notnull";
+                enemy("piggle");
+            }else {
+                chez = prompt("You are at a piggle nest. Your position is "+x+","+y+".");
+                move(chez);
+            }
+        }else if(checkcoords(-5,3)||checkcoords(5,-3)){
+            if (countsinceenemy > 6) {
+                chez = "notnull";
+                enemy("elite goblin");
+            }else {
+                chez = prompt("You are at a goblin stronghold. Your position is "+x+","+y+".");
+                move(chez);
+            }
+        }else if(checkcoords(7,7)){
+            chez = prompt("You are at the healing fountain. Every time you do something, you get 1/10 of your max health back. Your position is "+x+","+y+".");
+            move(chez);
+            if (checkcoords(7,7)) {
+                health = health + maxhealth/10;
+                if (health > maxhealth) {
+                    health = maxhealth;
+                }
+            }
+        }else if(checkcoords(42,42)){
+            if(riddlesolved !== true) {
+                chez = prompt('You enter the room, and you see a strange creature. It says:\n"Its shiny and green\nIts rare and serene\nIt has a bright gleam\nWhat am i thinking of?"');
+                if(chez.toLowerCase() === "emerald") {
+                    let correctalert = alert('The creature says "Correct! Here is a gift." Then, the creature hands you an emerald ring, and the creature falls into a deep sleep right after.');
+                    equipmentdictionary["Rings"].push("Emerald");
+                    updatestats();
+                }else {
+                    let wrongalert = alert('The creature says "Wrong." and picks you up, and yeets you back to 0,0.');
+                    x = 0;
+                    y = 0;
+                }
+            }
+        }else{
+            chez = prompt("Your position is "+x+","+y+".");
+            move(chez);
+        }
+        if(chez === null){
+            loopvar = false;
+        }
+        countsinceenemy = countsinceenemy + 1;
+    }
+}
